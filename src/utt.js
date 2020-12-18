@@ -1,6 +1,10 @@
 const cheerio = require('cheerio');
 const md5 = require('md5');
 var request = require('request-promise');
+var moment = require('moment-timezone');
+moment.tz.setDefault('Asia/Ho_Chi_Minh');
+moment.locale('vi-VN');
+const period_board = require('./periodBoard.js');
 const API = 'http://qldt.utt.edu.vn/CMCSoft.IU.Web.Info';
 
 
@@ -99,7 +103,7 @@ login = async (username, password, options = {}) => {
     txtUserName: username,
     txtPassword: password,
   };
-  return await request.post(endpoint, { form: form, simple: false, ...options});
+  return await request.post(endpoint, { form: form, simple: false, ...options });
 }
 getTkbDkh = async (options = {}) => {
   let endpoint = `${API}/StudyRegister/StudyRegister.aspx`;
@@ -131,7 +135,7 @@ getTkbDkh = async (options = {}) => {
 }
 
 parseTkbDkh = (data, options = {}) => {
-  data = data.slice(1, data.length-1);
+  data = data.slice(1, data.length - 1);
 
   data = data.map(rows => {
     rows = rows.map(cell => {
@@ -146,7 +150,7 @@ parseTkbDkh = (data, options = {}) => {
 
     let [stt, huy, lop_hoc_phan, hoc_phan, thoi_gian, dia_diem, giang_vien, si_so, da_dk, so_tc, hoc_phi, ghi_chu] = rows;
 
-    return {lop_hoc_phan, hoc_phan, thoi_gian, dia_diem, giang_vien, si_so, da_dk, so_tc, hoc_phi, ghi_chu}
+    return { lop_hoc_phan, hoc_phan, thoi_gian, dia_diem, giang_vien, si_so, da_dk, so_tc, hoc_phi, ghi_chu }
   });
 
   const date_range_pattern = /(.+?) đến (.+?):( \((.{1,}?)\))?/;
@@ -161,7 +165,7 @@ parseTkbDkh = (data, options = {}) => {
       .filter(a => a)
 
     let matches = date_range_pattern.exec(khoang_thoi_gian[0]);
-    
+
     if (matches) {
       let phases = [];
 
@@ -193,10 +197,91 @@ parseTkbDkh = (data, options = {}) => {
     }
 
     subject.thoi_gian = subject.thoi_gian.join('\n');
-    return {...subject, ranges};
+    return { ...subject, ranges };
   });
 
   return data;
+}
+parseDate = (date) => {
+  return moment(date, "DD/MM/YYYY");
+}
+
+generateTimestamps = (start, end, weekday) => {
+  let res = [];
+  start.weekday(weekday);
+
+  while (start.isSameOrBefore(end)) {
+    if (start.isSameOrBefore(end)) {
+      res.push(start.clone());
+    }
+    start.add(1, 'week');
+  }
+
+  return res;
+}
+
+generateClasses = (time_arr, start_period, end_period) => {
+  return time_arr.map(timestamp => {
+    return {
+      start: timestamp.clone().hour(period_board[start_period].start.hour).minute(period_board[start_period].start.minute),
+      end: timestamp.clone().hour(period_board[end_period].end.hour).minute(period_board[end_period].end.minute),
+    };
+  });
+}
+
+generateTimeline = (schedule) => {
+  let timeline = [];
+
+  for (subject of schedule) {
+    for (range of subject.ranges) {
+      for (phase of range.phases) {
+        let timestamps = generateClasses(generateTimestamps(parseDate(range.start), parseDate(range.end), parseInt(phase.day) - 2), parseInt(phase.periods[0]), parseInt(phase.periods[phase.periods.length - 1]));
+
+        for (timestamp of timestamps) {
+          let data = {
+            timestamp,
+            ...subject,
+            phase: range.phase,
+            type: phase.type
+          };
+
+          delete data.ranges;
+
+          timeline.push(data);
+        };
+      };
+    };
+  };
+
+  timeline.sort((a, b) => a.timestamp.start - b.timestamp.start);
+  return timeline;
+}
+
+groupTimelineByDay = (timeline) => {
+  let days = {};
+
+  timeline.map(subject => {
+    let timestamp = subject.timestamp.start.clone().startOf('day');
+
+    if (!days[timestamp]) days[timestamp] = {
+      day: timestamp,
+      subjects: []
+    }
+
+    days[timestamp].subjects.push(subject);
+  });
+
+  let result = Object.values(days)
+
+  result = result.map(day => {
+    if (day.day.clone().isSame(moment(), 'day')) {
+      day.today = true;
+    }
+
+    return day;
+  });
+
+  return result;
 }
 
 getStudentMark = async (options = {}) => {
@@ -228,4 +313,4 @@ getStudentMark = async (options = {}) => {
   return { data: res, options: parseSelector($) };
 }
 
-module.exports = { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark };
+module.exports = { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline };

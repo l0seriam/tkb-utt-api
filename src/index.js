@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
-const { login, getTkbDkh, parseTkbDkh } = require('./utt');
+const { login, getTkbDkh, parseTkbDkh, getStudentMark } = require('./utt');
 const tough = require('tough-cookie');
 app.use(express.json());
 
@@ -26,6 +26,23 @@ app.get('/utt', (req, res) => {
     const data = fs.readFileSync('thoikhoabieu.json', 'utf8');
     res.send(data);
 })
+
+app.post('/mark', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    try {
+        await login(username, password, { shouldNotEncrypt: false });
+
+        const data = await getStudentMark({
+            __EVENTTARGET: "drpHK",
+            drpHK: "2020_2021_1"
+        });
+        res.send(data);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+
 app.listen(port, () => {
     console.log(`App listening at PORT ${port}`);
 })
