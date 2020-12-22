@@ -312,5 +312,22 @@ getStudentMark = async (options = {}) => {
 
   return { data: res, options: parseSelector($) };
 }
+getHocPhi = async (options = {}) => {
+  let endpoint = `${API}/StudentService/StudentTuition.aspx`;
 
-module.exports = { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline };
+  let $ = await request.get(endpoint, options);
+
+  if (!options) options = parseSelector($);
+
+  initialFormData = parseInitialFormData($);
+
+
+  delete initialFormData.btnView;
+  let lblStudentAccount = $('#lblStudentAccount');
+  let total = $('#lblStudentAccount > span:nth-child(1)').text().trim();
+  let paid = $('#lblStudentAccount > span:nth-child(2)').text().trim();
+  let overage = $('#lblStudentAccount > span:nth-child(3)').text().trim();
+  return { total: total, paid: paid, overage: overage };
+}
+
+module.exports = { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline, getHocPhi };

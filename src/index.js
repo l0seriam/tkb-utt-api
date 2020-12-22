@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
-const { login, getTkbDkh, parseTkbDkh, getStudentMark } = require('./utt');
+const { login, getTkbDkh, parseTkbDkh, getStudentMark, getHocPhi } = require('./utt');
 const tough = require('tough-cookie');
 app.use(express.json());
 
@@ -38,6 +38,18 @@ app.post('/mark', async (req, res) => {
             drpHK: "2020_2021_1"
         });
         res.send(data);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+
+app.post('/getFee', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    try {
+        await login(username, password, { shouldNotEncrypt: false });
+        const fee = await getHocPhi();
+        res.send(fee);
     } catch (error) {
         res.status(400).send(error);
     }
