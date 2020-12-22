@@ -27,7 +27,7 @@ app.get('/utt', (req, res) => {
     res.send(data);
 })
 
-app.post('/mark', async (req, res) => {
+app.post('/getMark', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     try {
