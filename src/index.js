@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
-const { login, getTkbDkh, parseTkbDkh, getStudentMark, getHocPhi } = require('./utt');
+const { login, getTkbDkh, parseTkbDkh, getStudentMark, getHocPhi, getProfile } = require('./utt');
 const tough = require('tough-cookie');
 app.use(express.json());
 
@@ -50,6 +50,18 @@ app.post('/getFee', async (req, res) => {
         await login(username, password, { shouldNotEncrypt: false });
         const fee = await getHocPhi();
         res.send(fee);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+
+app.post('/getProfile', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    try {
+        await login(username, password, { shouldNotEncrypt: false });
+        const profile = await getProfile();
+        res.send(profile);
     } catch (error) {
         res.status(400).send(error);
     }
