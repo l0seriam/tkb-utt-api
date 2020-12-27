@@ -330,7 +330,7 @@ getHocPhi = async (options = {}) => {
   return { total: total, paid: paid, overage: overage };
 }
 getProfile = async (options = {}) => {
-  let endpoint = `${API}/StudentService/StudentTuition.aspx`;
+  let endpoint = `${API}/StudentMark.aspx`;
 
   let $ = await request.get(endpoint, options);
 
@@ -340,12 +340,12 @@ getProfile = async (options = {}) => {
 
   delete initialFormData.btnView;
 
-  let studentCode = $('#lblStudentCode').text.trim();
-  let studentName = $('#lblStudentName').text.trim();
-  let studentStatus = $('#lblstudentstatus').text.trim();
-  let studentCourse = $('#lblAy').text.trim();
-  let studentMajor = $('#drpField').text.trim();
-  let studentClass = $('#lblAdminClass').text.trim();
+  let studentCode = $('#lblStudentCode').text().trim();
+  let studentName = $('#lblStudentName').text().trim();
+  let studentStatus = $('#lblstudentstatus').text().trim();
+  let studentCourse = $('#lblAy').text().trim();
+  let studentMajor = $('#drpField').text().trim();
+  let studentClass = $('#lblAdminClass').text().trim();
   return { studentCode: studentCode, studentName: studentName, studentStatus: studentStatus, studentCourse: studentCourse, studentMajor: studentMajor, studentClass: studentClass };
 }
 module.exports = { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline, getHocPhi, getProfile };

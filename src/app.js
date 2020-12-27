@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const tough = require('tough-cookie');
 
-const { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline, getHocPhi } = require('./utt');
+const { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh, getStudentMark, generateTimeline, getHocPhi, getProfile } = require('./utt');
 (async () => {
     try {
         await login(username, password);
@@ -16,7 +16,7 @@ const { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh
         // const data = await getStudentMark();
         // fs.writeFileSync('bangdiem.json', JSON.stringify(data));
         // console.log(data);
-        const data = await getHocPhi();
+        const data = await getProfile();
         console.log(data);
 
     } catch (error) {
