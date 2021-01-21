@@ -16,7 +16,7 @@ const { init, login, parseSelector, parseInitialFormData, getTkbDkh, parseTkbDkh
         // const data = await getStudentMark();
         // fs.writeFileSync('bangdiem.json', JSON.stringify(data));
         // console.log(data);
-        const data = await getProfile();
+        const data = await getHocPhi();
         console.log(data);
 
     } catch (error) {
